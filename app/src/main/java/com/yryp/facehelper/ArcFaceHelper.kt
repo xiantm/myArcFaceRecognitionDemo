@@ -176,6 +176,7 @@ object ArcFaceHelper {
      * @return 搜索到的人脸集合
      */
     fun searchFace(data: ByteArray, width: Int, height: Int, aftFaceList: List<AFT_FSDKFace>, minScore: Float, onlyBiggestFace: Boolean): List<Pair<Face, Float>> {
+        //多线程人脸对比返回73733,对比线程用自己的对比引擎
         val afrEngine = AFR_FSDKEngine()
         afrEngine.AFR_FSDK_InitialEngine(FaceConfig.appid, FaceConfig.fr_key)
         var saftFaceList = aftFaceList.sortedBy { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
