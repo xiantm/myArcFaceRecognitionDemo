@@ -13,3 +13,4 @@
 - 没有加Android6.0动态权限验证，需要自己手动打开相机和存储权限
 
 ### 效果图
+![](https://github.com/xiantm/myArcFaceRecognitionDemo/blob/master/show.jpg)
