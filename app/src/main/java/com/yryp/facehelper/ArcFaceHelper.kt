@@ -42,12 +42,12 @@ object ArcFaceHelper {
         afdEngine.AFD_FSDK_UninitialFaceEngine()
     }
 
-    /**
-     * 人脸1：1对比
-     * @param face1 人脸一
-     * @param face2 人脸二
-     * @return 置信度
-     */
+//    /**
+//     * 人脸1：1对比
+//     * @param face1 人脸一
+//     * @param face2 人脸二
+//     * @return 置信度
+//     */
     fun compare11(face1: AFR_FSDKFace, face2: AFR_FSDKFace): Float {
         val score = AFR_FSDKMatching()
         val error = afrEngine.AFR_FSDK_FacePairMatching(face1, face2, score)
@@ -55,13 +55,13 @@ object ArcFaceHelper {
         Log.d(TAG, "AFR_FSDK_FacePairMatching -> errorcode :" + error.code)
         return score.score
     }
-
-    /**
-     * 编码图片
-     * @param faceBitmap 需要编码的图片
-     * @param onlyBiggestFace 是否只取最大人脸
-     * @return 人脸特征集合
-     */
+//
+//    /**
+//     * 编码图片
+//     * @param faceBitmap 需要编码的图片
+//     * @param onlyBiggestFace 是否只取最大人脸
+//     * @return 人脸特征集合
+//     */
     fun encodeFace(faceBitmap: Bitmap, onlyBiggestFace: Boolean): List<AFR_FSDKFace> {
         val data = ByteArray(faceBitmap.width * faceBitmap.height * 3 / 2)
         try {
@@ -78,7 +78,7 @@ object ArcFaceHelper {
         afdEngine.AFD_FSDK_StillImageFaceDetection(data, faceBitmap.width, faceBitmap.height, AFD_FSDKEngine.CP_PAF_NV21, afdResult)
         val result = mutableListOf<AFR_FSDKFace>()
         if (afdResult.isNotEmpty()) {
-            afdResult = afdResult.sortedBy { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
+            afdResult = afdResult.sortedByDescending { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
             val tempResult = AFR_FSDKFace()
             if (onlyBiggestFace) {
                 val error = afrEngine.AFR_FSDK_ExtractFRFeature(data, faceBitmap.width, faceBitmap.height, AFR_FSDKEngine.CP_PAF_NV21, afdResult[0].rect, afdResult[0].degree, tempResult)
@@ -93,20 +93,20 @@ object ArcFaceHelper {
         return result
     }
 
-    /**
-     * 编码nv21数据
-     * @param data 需要编码的图片
-     * @param width 图片宽
-     * @param height 图片高
-     * @param onlyBiggestFace 是否只取最大人脸
-     * @return 人脸特征集合
-     */
+//    /**
+//     * 编码nv21数据
+//     * @param data 需要编码的图片
+//     * @param width 图片宽
+//     * @param height 图片高
+//     * @param onlyBiggestFace 是否只取最大人脸
+//     * @return 人脸特征集合
+//     */
     fun encodeFace(data: ByteArray, width: Int, height: Int, onlyBiggestFace: Boolean): List<AFR_FSDKFace> {
         var afdResult: List<AFD_FSDKFace> = ArrayList<AFD_FSDKFace>()
         afdEngine.AFD_FSDK_StillImageFaceDetection(data, width, height, AFD_FSDKEngine.CP_PAF_NV21, afdResult)
         val result = mutableListOf<AFR_FSDKFace>()
         if (afdResult.isNotEmpty()) {
-            afdResult = afdResult.sortedBy { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
+            afdResult = afdResult.sortedByDescending { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
             val tempResult = AFR_FSDKFace()
             if (onlyBiggestFace) {
                 val error = afrEngine.AFR_FSDK_ExtractFRFeature(data, width, height, AFR_FSDKEngine.CP_PAF_NV21, afdResult[0].rect, afdResult[0].degree, tempResult)
@@ -122,19 +122,19 @@ object ArcFaceHelper {
     }
 
 
-    /**
-     * 编码nv21数据,已知AFT数据
-     * @param data 需要编码的图片
-     * @param aftFaceList 检测到的人脸集合
-     * @param width 图片宽
-     * @param height 图片高
-     * @param onlyBiggestFace 是否只取最大人脸
-     * @return 人脸特征集合
-     */
+//    /**
+//     * 编码nv21数据,已知AFT数据
+//     * @param data 需要编码的图片
+//     * @param aftFaceList 检测到的人脸集合
+//     * @param width 图片宽
+//     * @param height 图片高
+//     * @param onlyBiggestFace 是否只取最大人脸
+//     * @return 人脸特征集合
+//     */
     fun encodeFace(data: ByteArray, aftFaceList: List<AFT_FSDKFace>, width: Int, height: Int, onlyBiggestFace: Boolean): Pair<List<AFR_FSDKFace>, List<Rect>> {
         val afrResult = mutableListOf<AFR_FSDKFace>()
         val rectResult = mutableListOf<Rect>()
-        val aftResult = aftFaceList.sortedBy { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
+        val aftResult = aftFaceList.sortedByDescending { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
         val tempResult = AFR_FSDKFace()
         if (onlyBiggestFace) {
             val error = afrEngine.AFR_FSDK_ExtractFRFeature(data, width, height, AFR_FSDKEngine.CP_PAF_NV21, aftResult[0].rect, aftResult[0].degree, tempResult)
@@ -155,31 +155,31 @@ object ArcFaceHelper {
     }
 
 
-    /**
-     * 向人脸集合中添加人脸
-     * @param face
-     */
+//    /**
+//     * 向人脸集合中添加人脸
+//     * @param face
+//     */
     fun addFace(face: Face) = faceCache.add(face)
 
-    /**
-     * 清除所有人脸
-     */
+//    /**
+//     * 清除所有人脸
+//     */
     fun clearFaces() = faceCache.clear()
 
-    /**
-     * 搜索人脸
-     * @param data 图片
-     * @param width 图片宽
-     * @param height 图片高
-     * @param aftFaceList AFT引擎追踪到的人脸
-     * @param minScore 最小匹配分数
-     * @return 搜索到的人脸集合
-     */
+//    /**
+//     * 搜索人脸
+//     * @param data 图片
+//     * @param width 图片宽
+//     * @param height 图片高
+//     * @param aftFaceList AFT引擎追踪到的人脸
+//     * @param minScore 最小匹配分数
+//     * @return 搜索到的人脸集合
+//     */
     fun searchFace(data: ByteArray, width: Int, height: Int, aftFaceList: List<AFT_FSDKFace>, minScore: Float, onlyBiggestFace: Boolean): List<Pair<Face, Float>> {
         //多线程人脸对比返回73733,对比线程用自己的对比引擎
         val afrEngine = AFR_FSDKEngine()
         afrEngine.AFR_FSDK_InitialEngine(FaceConfig.appid, FaceConfig.fr_key)
-        var saftFaceList = aftFaceList.sortedBy { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
+        var saftFaceList = aftFaceList.sortedByDescending { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
         if (onlyBiggestFace) {
             saftFaceList = listOf(saftFaceList[0])
         }

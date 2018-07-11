@@ -73,7 +73,6 @@ class MainActivity : AppCompatActivity() {
             matrix.setRotate(FaceConfig.rotate.toFloat())
             face.setImageBitmap(Bitmap.createBitmap(bitmap, rect.left, rect.top, rect.right - rect.left,
                     rect.bottom - rect.top,matrix,false))
-            bitmap.recycle()
             return view
         }
 

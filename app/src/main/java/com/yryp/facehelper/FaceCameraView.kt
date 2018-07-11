@@ -163,6 +163,7 @@ class FaceCameraView : RelativeLayout, CameraSurfaceView.OnCameraListener {
 
         //将通过人脸检测的帧拿去提取特征码
         if (aftResult.isNotEmpty()) {
+            //只识别一个人
             val sortedAft = aftResult.filter { it.rect.left >= validLeft && it.rect.right <= validRight && it.rect.top >= validTop && it.rect.bottom <= validBottom }
             if (sortedAft.isNotEmpty()) {
                 queue.offer(Pair(data!!, sortedAft), 0, TimeUnit.MILLISECONDS)
