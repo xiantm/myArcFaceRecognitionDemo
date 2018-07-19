@@ -19,7 +19,6 @@ import com.guo.android_extend.java.ExtByteArrayOutputStream
 import com.guo.android_extend.widget.CameraFrameData
 import com.guo.android_extend.widget.CameraGLSurfaceView
 import com.guo.android_extend.widget.CameraSurfaceView
-import kotlinx.coroutines.experimental.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
