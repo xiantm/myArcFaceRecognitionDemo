@@ -20,9 +20,7 @@ import com.guo.android_extend.widget.CameraFrameData
 import com.guo.android_extend.widget.CameraGLSurfaceView
 import com.guo.android_extend.widget.CameraSurfaceView
 import kotlinx.coroutines.experimental.*
-import java.util.concurrent.Executors
-import java.util.concurrent.LinkedBlockingDeque
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 
@@ -51,7 +49,7 @@ class FaceCameraView : RelativeLayout, CameraSurfaceView.OnCameraListener {
     private var validScope = 1f
 
     // 捕获人脸时间，
-    private var captureFaceTime = 1000L
+    private var captureFaceTime = 3000L
 
     //是否可以匹配人脸的标识，当使用录入人脸时设置为false
     private val canSearch = AtomicBoolean(true)
@@ -101,25 +99,37 @@ class FaceCameraView : RelativeLayout, CameraSurfaceView.OnCameraListener {
      * 获取通过特征提取的人脸
      */
     fun getEncodeFace(callback: (ByteArray, Pair<List<AFR_FSDKFace>, List<Rect>>) -> Unit) {
-        canSearch.set(false)
-        var data = byteArrayOf()
-        singleTask.submit {
-            runBlocking {
-                val afrFaceList = withTimeoutOrNull(captureFaceTime) {
-                    repeat(10000) {
+        thread {
+            canSearch.set(false)
+            var data = ByteArray(0)
+            var flag = true
+            try {
+                val task = singleTask.submit(Callable<Pair<List<AFR_FSDKFace>, List<Rect>>> {
+                    //去掉队列里过时的帧
+                    queue.take()
+                    while (flag) {
                         val (data1, aftFaceList) = queue.take()
                         data = data1
-                        return@withTimeoutOrNull ArcFaceHelper.encodeFace(data1, aftFaceList, FaceConfig.previewWidth, FaceConfig.previewHeight, false)
+                        ArcFaceHelper.encodeFace(data1, aftFaceList, FaceConfig.previewWidth, FaceConfig.previewHeight, true).let {
+                            if (it.first.isNotEmpty()) {
+                                return@Callable it
+                            }
+                        }
                     }
+                    return@Callable null
+                })
+                val encodeResult = task.get(captureFaceTime, TimeUnit.MILLISECONDS)
+                encodeResult?.let {
+                    callback(data,it)
+//                    for(i in 1 until 1000){ // 添加1000张人脸查看速度
+//                        ArcFaceHelper.addFace(Face("",it.first.map { it.clone() },it.second,"",""))
+//                    }
                 }
-                afrFaceList?.let {
-                    val list = it as Pair<List<AFR_FSDKFace>, List<Rect>>
-                    if (list.first.isNotEmpty()) {
-                        callback(data, list)
-                    } else {
-                        callback(data, Pair<List<AFR_FSDKFace>, List<Rect>>(listOf(), listOf()))
-                    }
-                } ?: callback(data, Pair<List<AFR_FSDKFace>, List<Rect>>(listOf(), listOf()))
+            } catch (e: TimeoutException) { //超时返回空
+                callback(data, Pair(listOf(), listOf()))
+            } finally {
+                //结束任务
+                flag = false
                 canSearch.set(true)
             }
         }
@@ -127,20 +137,24 @@ class FaceCameraView : RelativeLayout, CameraSurfaceView.OnCameraListener {
 
     /**
      * 循环找人脸
+     * 单线程下1000人对比速度是600ms+(700ms提取特征速度）
      */
     private fun matchFaceLoop() {
         thread {
             while (true) {
                 if (canSearch.get()) {
                     val (data1, aftFaceList) = queue.take()
-                    val list = ArcFaceHelper.searchFace(data1, FaceConfig.previewWidth, FaceConfig.previewHeight, aftFaceList, 0.6f, false)
+
+                    val list = ArcFaceHelper.searchFace(data1, FaceConfig.previewWidth, FaceConfig.previewHeight, aftFaceList, 0.6f, true)
                     if (list.isEmpty()) {
                         Log.i("facemath", "找到${list.size}张脸")
                     } else {
                         Log.i("facemath", "找到${list.size}张脸")
-                        onMatch?.let { it(list) }
+                        onMatch?.let {
+                            it(list)
+                        }
                         for (item in list) {
-                            Log.i("facemath", "score is ${item.second}")
+//                            Log.i("facemath", "score is ${item.second}")
                         }
                     }
 
@@ -236,7 +250,7 @@ class FaceCameraView : RelativeLayout, CameraSurfaceView.OnCameraListener {
 //                parameters.setRotation(0)
 //                it.setDisplayOrientation(270)
                 //曝光补偿 -3 到 +3
-//                parameters.exposureCompensation = 1
+                parameters.exposureCompensation = 2
                 //支持 auto,incandescent,fluorescent,daylight,cloudy-daylight
 //            parameters.whiteBalance = Camera.Parameters.WHITE_BALANCE_AUTO
 //            parameters.antibanding = Camera.Parameters.ANTIBANDING_AUTO

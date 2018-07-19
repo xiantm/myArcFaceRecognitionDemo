@@ -159,7 +159,10 @@ object ArcFaceHelper {
 //     * 向人脸集合中添加人脸
 //     * @param face
 //     */
-    fun addFace(face: Face) = faceCache.add(face)
+    fun addFace(face: Face) {
+    faceCache.add(face)
+    Log.e(TAG,"face size = ${faceCache.size}")
+}
 
 //    /**
 //     * 清除所有人脸
@@ -177,6 +180,7 @@ object ArcFaceHelper {
 //     */
     fun searchFace(data: ByteArray, width: Int, height: Int, aftFaceList: List<AFT_FSDKFace>, minScore: Float, onlyBiggestFace: Boolean): List<Pair<Face, Float>> {
         //多线程人脸对比返回73733,对比线程用自己的对比引擎
+        val starttime = System.currentTimeMillis()
         val afrEngine = AFR_FSDKEngine()
         afrEngine.AFR_FSDK_InitialEngine(FaceConfig.appid, FaceConfig.fr_key)
         var saftFaceList = aftFaceList.sortedByDescending { (it.rect.bottom - it.rect.top) * (it.rect.right - it.rect.left) }
@@ -204,6 +208,7 @@ object ArcFaceHelper {
             }
         }
         afrEngine.AFR_FSDK_UninitialEngine()
+        Log.e(TAG,"search ${faceCache.size} faces use time ${System.currentTimeMillis()-starttime}")
         return result
     }
 }

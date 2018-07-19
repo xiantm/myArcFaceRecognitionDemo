@@ -16,7 +16,7 @@
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:validScope="0.8">
+        app:validScope="1">
 
     </com.yryp.facehelper.FaceCameraView>
 
